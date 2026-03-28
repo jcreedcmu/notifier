@@ -11,7 +11,7 @@ webpush.setVapidDetails(
 
 const payload = JSON.stringify({
   title: process.argv[2] || 'Event',
-  body: process.argv[3] || 'Something happened on your desktop'
+  body: process.argv[3] || 'Something happened on your desktop',
 });
 
 webpush.sendNotification(sub, payload)
