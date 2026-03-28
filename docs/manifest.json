@@ -1,0 +1,6 @@
+{
+  "name": "Notifier",
+  "short_name": "Notifier",
+  "start_url": "/notifier/",
+  "display": "standalone"
+}

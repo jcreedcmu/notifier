@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <title>Notifier</title>
+</head>
+<body>
+  <h1>Notifier</h1>
+  <button id="subscribe">Enable Notifications</button>
+  <pre id="output"></pre>
+  <script>
+    const VAPID_PUBLIC_KEY = 'BALavMy21m6usuw5-iaaDvJiAbUuln7SV72x5F5rZtO7kLk2vUu8EXQ53XB1whea5cTEUG8vN1f2BgHVPwQvhUE';
+
+    document.getElementById('subscribe').addEventListener('click', async () => {
+      const reg = await navigator.serviceWorker.register('sw.js');
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: VAPID_PUBLIC_KEY
+      });
+      const json = JSON.stringify(sub, null, 2);
+      document.getElementById('output').textContent = json;
+      // Copy this JSON and save it as subscription.json on your desktop
+    });
+  </script>
+</body>
+</html>
