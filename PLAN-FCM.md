@@ -8,21 +8,21 @@ machine, using Firebase Cloud Messaging for delivery. No server needed.
 ## Architecture
 
 ```
-Desktop ──── FCM ──── Android App
+Desktop ──── FCM ──── Android App (Capacitor)
 ```
 
 - **Desktop**: `push.js` uses `firebase-admin` to send an FCM data
   message directly. No relay server.
 - **FCM**: Free push delivery service (Google-operated).
-- **Android App**: Minimal Kotlin app that receives FCM messages and
-  shows notifications with vibration. Displays its FCM token on screen
-  for one-time copy to the desktop.
+- **Android App**: Capacitor-wrapped web page. Receives FCM messages,
+  shows notifications with vibration. Displays its FCM token for
+  one-time copy to the desktop.
 
 ## Prerequisites
 
 - Google/Firebase account (free tier)
 - Android Studio (for building the app)
-- Node.js on desktop (for the push script)
+- Node.js on desktop
 
 ## Step 1: Create a Firebase project
 
@@ -37,45 +37,112 @@ Desktop ──── FCM ──── Android App
 
 1. In the Firebase console, click "Add app" → Android
 2. Package name: `com.jcreedcmu.notifier`
-3. Download `google-services.json` — this goes in the Android app later
-4. Skip the remaining setup wizard steps
+3. Download `google-services.json` — save it for Step 3
 
-## Step 3: Build the Android app
+## Step 3: Build the Capacitor app
 
-Create a minimal Android app (in `android/` subdirectory) with:
+### Initialize Capacitor
 
-### Dependencies (build.gradle)
+```bash
+npm install @capacitor/core @capacitor/cli @capacitor/push-notifications @capacitor/clipboard @capacitor/local-notifications
+npx cap init notifier com.jcreedcmu.notifier --web-dir public
+npx cap add android
+```
 
-- `com.google.firebase:firebase-messaging` (FCM SDK)
+### Web page (`public/index.html`)
 
-### Components
+The Capacitor app serves the web page in `public/`. Rewrite it to:
 
-1. **`MyFirebaseMessagingService`** — extends `FirebaseMessagingService`
-   - `onMessageReceived(message)`: Build a notification with:
-     - Title and body from the FCM data payload
-     - Vibration pattern `[0, 500, 200, 500]`
-     - The app icon
-     - A notification channel with vibration enabled
-   - `onNewToken(token)`: Log it (user can reopen the app to see it)
+- Import Capacitor plugins via `@capacitor/push-notifications` and
+  `@capacitor/clipboard`
+- On load: register for push notifications, fetch the FCM token,
+  display it on screen
+- Provide a "Copy Token" button using the Clipboard plugin
+- Listen for incoming push notifications and show them via
+  `@capacitor/local-notifications` with vibration
 
-2. **`MainActivity`** — single activity that:
-   - Creates the notification channel on startup (required for Android 8+)
-   - Fetches the FCM token and displays it on screen with a "Copy" button
-   - That's it
+```js
+import { PushNotifications } from '@capacitor/push-notifications';
+import { Clipboard } from '@capacitor/clipboard';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
-### Notification Channel
+// Request permission and register
+await PushNotifications.requestPermissions();
+await PushNotifications.register();
 
-Create a channel (e.g. `"notifier_channel"`) with:
-- Importance: HIGH (enables heads-up display)
-- Vibration: enabled, pattern `[0, 500, 200, 500]`
-- This is what actually controls vibration on Android 8+
+// Get token
+PushNotifications.addListener('registration', ({ value: token }) => {
+  document.getElementById('token').textContent = token;
+});
 
-## Step 4: Install the Android app
+// Receive push while in foreground — show as local notification
+PushNotifications.addListener('pushNotificationReceived', (notification) => {
+  LocalNotifications.schedule({
+    notifications: [{
+      id: Date.now(),
+      title: notification.data.title || 'Event',
+      body: notification.data.body || '',
+    }],
+  });
+});
 
-1. Build in Android Studio
-2. Install on phone via USB or generate a signed APK
-3. Open the app — copy the displayed FCM token
-4. Save the token on your desktop as `fcm-token.txt` in the project dir
+// Copy button
+document.getElementById('copy').addEventListener('click', async () => {
+  const token = document.getElementById('token').textContent;
+  await Clipboard.write({ string: token });
+});
+```
+
+Note: Capacitor plugins use ES modules. The web code needs to be
+bundled (e.g. with esbuild or vite) or loaded via a `<script type="module">`.
+
+### Configure the notification channel
+
+Create a notification channel with vibration in the Capacitor config.
+In `capacitor.config.ts` (or `.json`):
+
+```json
+{
+  "plugins": {
+    "LocalNotifications": {
+      "channels": [{
+        "id": "notifier",
+        "name": "Notifier",
+        "importance": 4,
+        "vibration": true
+      }]
+    }
+  }
+}
+```
+
+Then reference `channelId: "notifier"` when scheduling local
+notifications.
+
+### Add Firebase config
+
+Copy `google-services.json` to `android/app/google-services.json`.
+
+### Sync and build
+
+```bash
+npx cap sync
+```
+
+Then open in Android Studio:
+
+```bash
+npx cap open android
+```
+
+Build and install to phone via USB (or generate APK).
+
+## Step 4: Get the FCM token
+
+1. Open the app on phone
+2. Grant notification permission when prompted
+3. Copy the displayed FCM token
+4. Save on desktop as `fcm-token.txt`
 
 ## Step 5: Set up the desktop push script
 
@@ -127,28 +194,31 @@ long-running-command && node ~/proj/notifier/push.js "Done" "Command finished"
 ```
 notifier/
   .gitignore                    # node_modules/, firebase-service-account.json,
-                                # fcm-token.txt, google-services.json
+                                # fcm-token.txt
   firebase-service-account.json # Firebase SA key (gitignored)
   fcm-token.txt                 # FCM token from phone (gitignored)
   push.js                       # desktop push script
   package.json
-  android/
+  capacitor.config.ts           # Capacitor config
+  public/
+    index.html                  # app UI (token display + copy button)
+  android/                      # generated by `npx cap add android`
     app/
-      src/main/
-        kotlin/.../MainActivity.kt
-        kotlin/.../MyFirebaseMessagingService.kt
-        AndroidManifest.xml
-        res/...
-      build.gradle.kts
-      google-services.json      # from Firebase (gitignored)
+      google-services.json      # from Firebase
+      ...
 ```
 
 ## Notes
 
 - FCM tokens rotate occasionally. If pushes stop working, reopen the
   app, copy the new token, and update `fcm-token.txt`.
-- Uses a **data message** (not a notification message) so the Android
-  app always handles it and controls the vibration, even in foreground.
+- Uses a **data message** (not a notification message) so the app
+  always handles it, even in the foreground.
+- When the app is in the background, FCM data messages are received
+  by Capacitor's native layer, which shows the notification
+  automatically.
+- The notification channel controls vibration at the OS level
+  (Android 8+), so vibration is reliable.
 - No server, no accounts beyond Firebase, no ongoing costs.
 
 ## Cost
