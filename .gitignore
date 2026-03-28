@@ -1,3 +1,5 @@
 node_modules/
 .env
-subscription.json
+firebase-service-account.json
+fcm-token.txt
+google-services.json
