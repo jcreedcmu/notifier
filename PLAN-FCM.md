@@ -85,7 +85,7 @@ adb --version
 ## Step 2: Create the Android app in Firebase
 
 1. In the Firebase console, click "Add app" → Android
-2. Package name: `com.jcreedcmu.notifier`
+2. Package name: `org.jcreed.notifier`
 3. Download `google-services.json` — save it for Step 3
 
 ## Step 3: Build the Capacitor app
@@ -94,7 +94,7 @@ adb --version
 
 ```bash
 npm install @capacitor/core @capacitor/cli @capacitor/push-notifications @capacitor/clipboard @capacitor/local-notifications
-npx cap init notifier com.jcreedcmu.notifier --web-dir public
+npx cap init notifier org.jcreed.notifier --web-dir public
 npx cap add android
 ```
 

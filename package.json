@@ -17,8 +17,5 @@
   "bugs": {
     "url": "https://github.com/jcreedcmu/notifier/issues"
   },
-  "homepage": "https://github.com/jcreedcmu/notifier#readme",
-  "dependencies": {
-    "web-push": "^3.6.7"
-  }
+  "homepage": "https://github.com/jcreedcmu/notifier#readme"
 }
