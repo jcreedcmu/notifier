@@ -21,8 +21,57 @@ Desktop ──── FCM ──── Android App (Capacitor)
 ## Prerequisites
 
 - Google/Firebase account (free tier)
-- Android Studio (for building the app)
 - Node.js on desktop
+- Java JDK 17 (for Gradle/Android builds)
+
+## Step 0: Set up Android SDK (no Android Studio needed)
+
+All tools live under a local directory — nothing installed system-wide.
+
+### Download command-line tools
+
+```bash
+mkdir -p ~/android-sdk/cmdline-tools
+cd ~/android-sdk/cmdline-tools
+curl -O https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+unzip commandlinetools-linux-11076708_latest.zip
+mv cmdline-tools latest
+rm commandlinetools-linux-11076708_latest.zip
+```
+
+### Set environment variables
+
+Add to your shell profile (e.g. `~/.bashrc`):
+
+```bash
+export ANDROID_HOME=~/android-sdk
+export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+```
+
+Then `source ~/.bashrc`.
+
+### Install SDK packages
+
+```bash
+sdkmanager --licenses        # accept all licenses
+sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+```
+
+### Verify
+
+```bash
+sdkmanager --list_installed
+adb --version
+```
+
+### Connect your phone
+
+1. On phone: Settings → About phone → tap "Build number" 7 times to
+   enable Developer options
+2. Settings → Developer options → enable "USB debugging"
+3. Connect phone via USB
+4. Run `adb devices` — approve the prompt on phone
+5. Should show your device listed
 
 ## Step 1: Create a Firebase project
 
@@ -127,15 +176,20 @@ Copy `google-services.json` to `android/app/google-services.json`.
 
 ```bash
 npx cap sync
+cd android && ./gradlew assembleDebug
 ```
 
-Then open in Android Studio:
+### Install to phone
 
 ```bash
-npx cap open android
+adb install android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Build and install to phone via USB (or generate APK).
+To rebuild after changes:
+
+```bash
+npx cap sync && cd android && ./gradlew assembleDebug && adb install app/build/outputs/apk/debug/app-debug.apk
+```
 
 ## Step 4: Get the FCM token
 
