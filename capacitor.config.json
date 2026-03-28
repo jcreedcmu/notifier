@@ -1,0 +1,17 @@
+{
+  "appId": "org.jcreed.notifier",
+  "appName": "Notifier",
+  "webDir": "public",
+  "plugins": {
+    "LocalNotifications": {
+      "channels": [
+        {
+          "id": "notifier",
+          "name": "Notifier",
+          "importance": 4,
+          "vibration": true
+        }
+      ]
+    }
+  }
+}

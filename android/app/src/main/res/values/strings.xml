@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Notifier</string>
+    <string name="title_activity_main">Notifier</string>
+    <string name="package_name">org.jcreed.notifier</string>
+    <string name="custom_url_scheme">org.jcreed.notifier</string>
+</resources>

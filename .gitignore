@@ -3,3 +3,5 @@ node_modules/
 firebase-service-account.json
 fcm-token.txt
 google-services.json
+public/app.bundle.js
+.claude/
