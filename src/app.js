@@ -40,6 +40,7 @@ async function scheduleNotifications() {
       repeats: true,
     },
     channelId: 'status',
+    smallIcon: 'ic_notification',
     extra: { fireHour: hour },
   }));
 
@@ -122,6 +123,7 @@ async function init() {
           body: 'How are you? (test)',
           schedule: { at: at.toISOString() },
           channelId: 'status',
+          smallIcon: 'ic_notification',
           extra: { fireHour: at.getHours() },
         }],
       });
