@@ -6,8 +6,8 @@
   <title>Status</title>
   <style>
     body { font-family: sans-serif; padding: 1em; text-align: center; }
-    #buttons { display: none; margin: 2em 0; }
-    #buttons button {
+    .state-buttons { margin: 1em 0; }
+    .state-buttons button {
       font-size: 1.5em;
       padding: 0.6em 1.2em;
       margin: 0.3em;
@@ -16,8 +16,14 @@
       background: #f0f0f0;
       cursor: pointer;
     }
-    #buttons button:active { background: #ccc; }
-    #confirmation { display: none; font-size: 1.5em; color: #2a2; margin-top: 2em; }
+    .state-buttons button.selected {
+      background: #4a90d9;
+      color: white;
+      border-color: #2a6cb8;
+    }
+    #submit { font-size: 1.2em; padding: 0.5em 2em; margin-top: 0.5em; }
+    #submit:disabled { opacity: 0.4; }
+    #confirmation { display: none; font-size: 1.5em; color: #2a2; margin-top: 1em; }
     #status { color: #666; margin-top: 1em; }
     #history { margin: 1em auto; border-collapse: collapse; }
     #history td { padding: 0.3em 0.8em; border-bottom: 1px solid #ddd; font-size: 0.9em; }
@@ -25,19 +31,20 @@
 </head>
 <body>
   <h1>Status</h1>
-  <div id="buttons">
-    <p>How are you?</p>
+  <p>How are you?</p>
+  <div class="state-buttons">
     <button data-val="-2">-2</button>
     <button data-val="-1">-1</button>
     <button data-val="0">0</button>
     <button data-val="1">1</button>
     <button data-val="2">2</button>
-    <div><input type="text" id="comment" placeholder="comment (optional)" style="margin-top: 0.8em; font-size: 1em; padding: 0.4em; width: 80%;"></div>
   </div>
+  <div><input type="text" id="comment" placeholder="comment (optional)" style="font-size: 1em; padding: 0.4em; width: 80%;"></div>
+  <button id="submit" disabled>Submit</button>
   <div id="confirmation">Recorded!</div>
   <p id="status"></p>
   <table id="history"></table>
-  <button id="test">Test (1 min)</button>
+  <button id="test">Test (5s)</button>
   <script src="app.bundle.js"></script>
 </body>
 </html>
