@@ -1,49 +1,56 @@
-notifier
-========
+Status
+======
 
-Minimal Android app that receives push notifications with custom
-vibration patterns, triggered from a desktop script. Uses Firebase
-Cloud Messaging for delivery and Capacitor to wrap a web page as a
-native Android app.
+Android app that prompts you to record how you're doing every two
+hours (9am, 11am, 1pm, 3pm, 5pm, 7pm). Tap the notification, pick a
+value from -2 to 2, and it's saved to a local JSONL file on the
+device. Built with Capacitor wrapping a simple web page.
 
 ## Prerequisites
 
 - Node.js 22+
 - Java JDK 17+ (full JDK, not JRE)
 - Android SDK command-line tools (`ANDROID_HOME` set, `adb` on PATH)
-- A Firebase project with an Android app registered as `org.jcreed.notifier`
+- ImageMagick (`convert`) for icon generation
 
 ## Setup
 
-Place these files in the project root (all gitignored):
-
-- `firebase-service-account.json` — from Firebase console → Project Settings → Service accounts → Generate new private key
-- `google-services.json` — from Firebase console → Project Settings → General → Your apps
-- `fcm-token.txt` — copied from the app after first install (see below)
-
-Install dependencies:
-
     npm install
+
+## Icons
+
+Source images live in `assets/`. To regenerate all Android icon
+resources from `assets/status.png` and `assets/status-small.png`:
+
+    ./resize-icon.sh
 
 ## Build and install
 
     make install
 
-This bundles the JS, syncs Capacitor, builds the APK, and installs
-via `adb`. Your phone must be connected with USB debugging enabled.
+This bundles the JS, syncs Capacitor, builds the debug APK, and
+installs via `adb`. Your phone must be connected with USB debugging
+enabled.
 
-On first install, open the app, grant notification permission, and
-tap "Copy Token". Save the token as `fcm-token.txt` in this directory.
+On first launch, grant notification permission when prompted.
 
-## Send a notification
+## Data access
 
-    node push.js "Title" "Body text"
+Status entries are stored in the app's internal storage as
+`status-log.jsonl`. Each line looks like:
 
-## Changing the vibration pattern
+    {"time":"2026-04-25T14:30:00.000Z","state":1,"fireHour":13}
 
-Edit the `vibrationPattern` array in `src/app.js`. Then run
-`make install`, open the app (to recreate the notification channel),
-and update the `channelId` in `push.js` to match the new
-pattern-derived ID (e.g. `notifier-0-150-100-150-100-150-100-500`).
+`time` is when the button was tapped. `fireHour` is present for
+recurring notifications (the scheduled hour), absent for test
+notifications.
 
-No need to uninstall or re-copy the FCM token.
+Pull the file to your computer:
+
+    adb exec-out run-as org.jcreed.status cat files/status-log.jsonl > status-log.jsonl
+
+Clear the file on the device:
+
+    adb exec-out run-as org.jcreed.status sh -c '> files/status-log.jsonl'
+
+Both require the debug build and USB debugging.
