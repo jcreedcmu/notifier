@@ -19,6 +19,8 @@
     #buttons button:active { background: #ccc; }
     #confirmation { display: none; font-size: 1.5em; color: #2a2; margin-top: 2em; }
     #status { color: #666; margin-top: 1em; }
+    #history { margin: 1em auto; border-collapse: collapse; }
+    #history td { padding: 0.3em 0.8em; border-bottom: 1px solid #ddd; font-size: 0.9em; }
   </style>
 </head>
 <body>
@@ -33,6 +35,7 @@
   </div>
   <div id="confirmation">Recorded!</div>
   <p id="status"></p>
+  <table id="history"></table>
   <button id="test">Test (1 min)</button>
   <script src="app.bundle.js"></script>
 </body>

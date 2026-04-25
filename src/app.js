@@ -9,7 +9,30 @@ const statusEl = document.getElementById('status');
 const buttonsEl = document.getElementById('buttons');
 const confirmationEl = document.getElementById('confirmation');
 
-let pendingFireHour = null;
+const historyEl = document.getElementById('history');
+
+let pendingExtra = null;
+
+async function loadHistory() {
+  try {
+    const file = await Filesystem.readFile({
+      path: DATA_FILE,
+      directory: Directory.Data,
+      encoding: Encoding.UTF8,
+    });
+    const lines = file.data.trim().split('\n').filter(Boolean);
+    const recent = lines.slice(-10);
+    historyEl.innerHTML = recent.map(line => {
+      const { time, state } = JSON.parse(line);
+      const d = new Date(time);
+      const dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      const timeStr = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      return `<tr><td>${dateStr} ${timeStr}</td><td>${state}</td></tr>`;
+    }).join('');
+  } catch {
+    // No file yet
+  }
+}
 
 async function scheduleNotifications() {
   const perm = await LocalNotifications.requestPermissions();
@@ -48,21 +71,14 @@ async function scheduleNotifications() {
   statusEl.textContent = 'Notifications scheduled for ' + HOURS.map(h => h + ':00').join(', ');
 }
 
-function computeFireTime(fireHour) {
-  const now = new Date();
-  const fire = new Date(now.getFullYear(), now.getMonth(), now.getDate(), fireHour, 0, 0, 0);
-  // If current time is before the fire hour, the notification was from yesterday
-  if (now < fire) {
-    fire.setDate(fire.getDate() - 1);
-  }
-  return fire.toISOString();
-}
-
-async function recordState(value, fireHour) {
+async function recordState(value, extra) {
   const entry = {
-    time: computeFireTime(fireHour),
+    time: new Date().toISOString(),
     state: value,
   };
+  if (extra?.fireHour != null) {
+    entry.fireHour = extra.fireHour;
+  }
   const line = JSON.stringify(entry) + '\n';
 
   try {
@@ -83,8 +99,8 @@ async function recordState(value, fireHour) {
   }
 }
 
-function showButtons(fireHour) {
-  pendingFireHour = fireHour;
+function showButtons(extra) {
+  pendingExtra = extra;
   buttonsEl.style.display = 'block';
   confirmationEl.style.display = 'none';
   statusEl.textContent = '';
@@ -94,7 +110,8 @@ async function handleButtonClick(value) {
   buttonsEl.style.display = 'none';
   confirmationEl.style.display = 'block';
 
-  await recordState(value, pendingFireHour);
+  await recordState(value, pendingExtra);
+  await loadHistory();
 
   setTimeout(() => {
     App.minimizeApp();
@@ -103,16 +120,14 @@ async function handleButtonClick(value) {
 
 async function init() {
   await scheduleNotifications();
+  await loadHistory();
 
   // Handle notification tap
   LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
-    const fireHour = action.notification.extra?.fireHour;
-    if (fireHour != null) {
-      showButtons(fireHour);
-    }
+    showButtons(action.notification.extra);
   });
 
-  // Test button — schedule a notification 1 minute from now
+  // Test button — schedule a notification 5 seconds from now
   document.getElementById('test').addEventListener('click', async () => {
     try {
       const at = new Date(Date.now() + 5 * 1000);
@@ -124,7 +139,6 @@ async function init() {
           schedule: { at: at.toISOString() },
           channelId: 'status',
           smallIcon: 'ic_notification',
-          extra: { fireHour: at.getHours() },
         }],
       });
       statusEl.textContent = 'Test scheduled for ' + at.toLocaleTimeString();
