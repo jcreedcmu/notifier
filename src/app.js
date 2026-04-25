@@ -55,22 +55,27 @@ async function scheduleNotifications() {
     await LocalNotifications.cancel(pending);
   }
 
-  const notifications = HOURS.map((hour, i) => ({
-    id: i + 1,
-    title: 'Status Check',
-    body: 'How are you?',
-    schedule: {
-      on: { hour, minute: 0 },
-      repeats: true,
-      allowWhileIdle: true,
-    },
-    channelId: 'status',
-    smallIcon: 'ic_notification',
-    extra: { fireHour: hour },
-  }));
+  const notifications = HOURS.map((hour, i) =>
+    makeNotification(i + 1, {
+      schedule: { on: { hour, minute: 0 }, repeats: true },
+      extra: { fireHour: hour },
+    })
+  );
 
   await LocalNotifications.schedule({ notifications });
   statusEl.textContent = 'Notifications scheduled for ' + HOURS.map(h => h + ':00').join(', ');
+}
+
+function makeNotification(id, { schedule, ...overrides } = {}) {
+  return {
+    id,
+    title: 'Status Check',
+    body: '',
+    channelId: 'status',
+    smallIcon: 'ic_notification',
+    ...(schedule && { schedule: { allowWhileIdle: true, ...schedule } }),
+    ...overrides,
+  };
 }
 
 async function recordState(value, extra) {
@@ -156,18 +161,16 @@ async function init() {
   // Test button
   document.getElementById('test').addEventListener('click', async () => {
     try {
-      const at = new Date(Date.now() + 5 * 1000);
+      // Schedule using the same `on:` path as the real hourly alarms
+      const target = new Date(Date.now() + 2 * 60 * 1000);
+      const hour = target.getHours();
+      const minute = target.getMinutes();
       await LocalNotifications.schedule({
-        notifications: [{
-          id: 99,
-          title: 'Status Check',
-          body: 'How are you? (test)',
-          schedule: { at: at.toISOString(), allowWhileIdle: true },
-          channelId: 'status',
-          smallIcon: 'ic_notification',
-        }],
+        notifications: [makeNotification(99, {
+          schedule: { on: { hour, minute } },
+        })],
       });
-      statusEl.textContent = 'Test scheduled for ' + at.toLocaleTimeString();
+      statusEl.textContent = `Test (on:) scheduled for ${hour}:${String(minute).padStart(2, '0')}`;
     } catch (err) {
       statusEl.textContent = 'Failed: ' + err.message;
     }
