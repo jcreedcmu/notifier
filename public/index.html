@@ -3,19 +3,37 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Notifier</title>
+  <title>Status</title>
   <style>
-    body { font-family: sans-serif; padding: 1em; }
-    #token { word-break: break-all; font-size: 0.8em; margin: 1em 0; }
-    button { padding: 0.5em 1em; margin: 0.5em 0; }
-    #status { color: #666; }
+    body { font-family: sans-serif; padding: 1em; text-align: center; }
+    #buttons { display: none; margin: 2em 0; }
+    #buttons button {
+      font-size: 1.5em;
+      padding: 0.6em 1.2em;
+      margin: 0.3em;
+      border: 2px solid #333;
+      border-radius: 8px;
+      background: #f0f0f0;
+      cursor: pointer;
+    }
+    #buttons button:active { background: #ccc; }
+    #confirmation { display: none; font-size: 1.5em; color: #2a2; margin-top: 2em; }
+    #status { color: #666; margin-top: 1em; }
   </style>
 </head>
 <body>
-  <h1>Notifier</h1>
-  <p id="status">Registering...</p>
-  <pre id="token"></pre>
-  <button id="copy" style="display:none">Copy Token</button>
+  <h1>Status</h1>
+  <div id="buttons">
+    <p>How are you?</p>
+    <button data-val="-2">-2</button>
+    <button data-val="-1">-1</button>
+    <button data-val="0">0</button>
+    <button data-val="1">1</button>
+    <button data-val="2">2</button>
+  </div>
+  <div id="confirmation">Recorded!</div>
+  <p id="status"></p>
+  <button id="test">Test (1 min)</button>
   <script src="app.bundle.js"></script>
 </body>
 </html>

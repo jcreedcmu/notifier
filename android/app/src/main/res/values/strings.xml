@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Status</string>
     <string name="title_activity_main">Status</string>
-    <string name="package_name">org.jcreed.notifier</string>
-    <string name="custom_url_scheme">org.jcreed.notifier</string>
+    <string name="package_name">org.jcreed.status</string>
+    <string name="custom_url_scheme">org.jcreed.status</string>
 </resources>

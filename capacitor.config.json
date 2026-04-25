@@ -1,13 +1,13 @@
 {
-  "appId": "org.jcreed.notifier",
-  "appName": "Notifier",
+  "appId": "org.jcreed.status",
+  "appName": "Status",
   "webDir": "public",
   "plugins": {
     "LocalNotifications": {
       "channels": [
         {
-          "id": "notifier",
-          "name": "Notifier",
+          "id": "status",
+          "name": "Status",
           "importance": 4,
           "vibration": true
         }
