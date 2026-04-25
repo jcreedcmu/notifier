@@ -72,12 +72,16 @@ async function scheduleNotifications() {
 }
 
 async function recordState(value, extra) {
+  const comment = document.getElementById('comment').value.trim();
   const entry = {
     time: new Date().toISOString(),
     state: value,
   };
   if (extra?.fireHour != null) {
     entry.fireHour = extra.fireHour;
+  }
+  if (comment) {
+    entry.comment = comment;
   }
   const line = JSON.stringify(entry) + '\n';
 
