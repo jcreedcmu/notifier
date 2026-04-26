@@ -22,13 +22,13 @@ async function loadHistory() {
       encoding: Encoding.UTF8,
     });
     const lines = file.data.trim().split('\n').filter(Boolean);
-    const recent = lines.slice(-10);
+    const recent = lines.slice(-10).reverse();
     historyEl.innerHTML = recent.map(line => {
-      const { time, state } = JSON.parse(line);
+      const { time, state, comment } = JSON.parse(line);
       const d = new Date(time);
       const dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
       const timeStr = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-      return `<tr><td>${dateStr} ${timeStr}</td><td>${state}</td></tr>`;
+      return `<tr><td>${dateStr} ${timeStr}</td><td>${state}</td><td>${comment || ''}</td></tr>`;
     }).join('');
   } catch {
     // No file yet
